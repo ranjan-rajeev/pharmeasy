@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,6 +22,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.pharmeasy.R;
+import com.pharmeasy.adapter.UserAdapter;
 import com.pharmeasy.model.UserEntity;
 import com.pharmeasy.viewmodel.UserViewModel;
 
@@ -35,6 +39,13 @@ public class MainActivity extends AppCompatActivity
     TextView tvHello;
     UserViewModel userViewModel;
     int page = 1;
+    @BindView(R.id.rvUsers)
+    RecyclerView rvUsers;
+    UserEntity userEntity;
+    boolean isHit = false;
+
+    UserAdapter userAdapter;
+    private static int firstVisibleInListview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +53,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        //region default code
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -62,33 +74,82 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        //endregion
 
         userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
-        //userViewModel.getUser(page);
         userViewModel.getUserViewModel().observe(this, userViewModelObserver);
-       // userViewModel.getCurrentName().observe(this, nameObserver);
+
+        rvUsers.setHasFixedSize(true);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        rvUsers.setLayoutManager(layoutManager);
+        rvUsers.addOnScrollListener(onScrollListener);
     }
+
+    RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            firstVisibleInListview = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+
+            int currentFirstVisible = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+
+            if (currentFirstVisible > firstVisibleInListview) {
+                Log.i("RecyclerView scrolled: ", "scroll up!");
+            } else {
+                Log.i("RecyclerView scrolled: ", "scroll down!");
+            }
+
+
+            firstVisibleInListview = currentFirstVisible;
+
+
+            int lastCompletelyVisibleItemPosition = 0, prevPage = 0;
+
+            lastCompletelyVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager())
+                    .findLastVisibleItemPosition();
+
+            lastCompletelyVisibleItemPosition++;
+            prevPage = lastCompletelyVisibleItemPosition / userEntity.getPer_page();
+
+
+            if (prevPage < userEntity.getTotal_pages()) {
+                if (!isHit) {
+                    isHit = true;
+                    userViewModel.getUser((userEntity.getPage() + 1));
+                }
+            }
+
+            /*if (lastCompletelyVisibleItemPosition == userEntity.getPage() - 1) {
+                if (!isHit) {
+                    isHit = true;
+                    userViewModel.getUser(page);
+                }
+            }*/
+
+
+        }
+    };
+
 
     final Observer<UserEntity> userViewModelObserver = new Observer<UserEntity>() {
         @Override
         public void onChanged(@Nullable final UserEntity userEntity) {
             // Update the UI, in this case, a TextView.
+            isHit = false;
+            MainActivity.this.userEntity = userEntity;
             tvHello.setText("test" + userEntity.getPage());
+            if (userAdapter == null) {
+                userAdapter = new UserAdapter(MainActivity.this, userEntity);
+                rvUsers.setAdapter(userAdapter);
+            }
+            userAdapter.notifyDataSetChanged();
         }
     };
 
-    final Observer<String> nameObserver = new Observer<String>() {
-        @Override
-        public void onChanged(@Nullable final String newName) {
-            // Update the UI, in this case, a TextView.
-            tvHello.setText(newName);
-        }
-    };
 
     @OnClick(R.id.tvHello)
     void hello() {
         userViewModel.getUser(++page);
-
     }
 
     @Override

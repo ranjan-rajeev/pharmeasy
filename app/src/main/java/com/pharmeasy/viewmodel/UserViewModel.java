@@ -22,7 +22,6 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
     Context context;
     UserEntity userEntity;
     MutableLiveData<UserEntity> userEntityLiveData;
-    MutableLiveData<String> page;
     UserAPIService userAPIService;
 
     public UserEntity getUserEntity() {
@@ -33,12 +32,6 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
         this.userEntity = userEntity;
     }
 
-    public MutableLiveData<String> getCurrentName() {
-        if (page == null) {
-            page = new MutableLiveData<String>();
-        }
-        return page;
-    }
 
     public UserViewModel() {
         this.userAPIService = new UserAPIService();
@@ -51,13 +44,13 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
     public void getUser(int page) {
         userAPIService.getUser(page, this);
-       // userEntity = new UserEntity();
+        // userEntity = new UserEntity();
     }
 
 
     public LiveData<UserEntity> getUserViewModel() {
 
-        if (userEntityLiveData == null){
+        if (userEntityLiveData == null) {
             userEntityLiveData = new MutableLiveData<UserEntity>();
             userAPIService.getUser(1, this);
         }
@@ -68,18 +61,18 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
     @Override
     public void onSuccess(MutableLiveData<UserEntity> response) {
         if (userEntity == null) {
-            userEntityLiveData = response;
             userEntity = response.getValue();
-            setUserEntity(response.getValue());
-            userEntityLiveData.postValue(userEntity);
+            userEntityLiveData.setValue(userEntity);
         } else {
-            //this.page.setValue("" + response.getValue().getPage());
-            userEntityLiveData.getValue().setPage(response.getValue().getPage());
-            userEntityLiveData.getValue().getData().addAll(response.getValue().getData());
-            setUserEntity(userEntityLiveData.getValue());
-            userEntityLiveData.postValue(userEntity);
-            //userEntity = userEntityLiveData.getValue();
+            userEntity.setPage(response.getValue().getPage());
+            userEntity.getData().addAll(response.getValue().getData());
+            userEntityLiveData.setValue(userEntity);
         }
+    }
+
+    @Override
+    public void onFailure(String message) {
+        Toast.makeText(context, "" + message, Toast.LENGTH_SHORT).show();
     }
 
     public MutableLiveData<UserEntity> getUserEntityLiveData() {
@@ -90,8 +83,5 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
         this.userEntityLiveData = userEntityLiveData;
     }
 
-    @Override
-    public void onFailure(String message) {
-        Toast.makeText(context, "" + message, Toast.LENGTH_SHORT).show();
-    }
+
 }
