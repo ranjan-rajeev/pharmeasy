@@ -1,5 +1,6 @@
 package com.pharmeasy.viewmodel;
 
+import android.app.ProgressDialog;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
@@ -19,6 +20,8 @@ import java.util.List;
  */
 
 public class UserViewModel extends ViewModel implements ResponseListener<MutableLiveData<UserEntity>> {
+
+    ProgressDialog progressDialog;
     Context context;
     UserEntity userEntity;
     MutableLiveData<UserEntity> userEntityLiveData;
@@ -43,6 +46,7 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
     }
 
     public void getUser(int page) {
+        showDialog();
         userAPIService.getUser(page, this);
         // userEntity = new UserEntity();
     }
@@ -60,6 +64,7 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
     @Override
     public void onSuccess(MutableLiveData<UserEntity> response) {
+        cancelDialog();
         if (userEntity == null) {
             userEntity = response.getValue();
             userEntityLiveData.setValue(userEntity);
@@ -72,6 +77,7 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
     @Override
     public void onFailure(String message) {
+        cancelDialog();
         Toast.makeText(context, "" + message, Toast.LENGTH_SHORT).show();
     }
 
@@ -83,5 +89,24 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
         this.userEntityLiveData = userEntityLiveData;
     }
 
+
+    protected void cancelDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
+
+    protected void showDialog() {
+        showDialog("Loading...");
+    }
+
+    protected void showDialog(String msg) {
+        if (progressDialog == null)
+            progressDialog = ProgressDialog.show(context, "", msg, true);
+        else {
+            if (!progressDialog.isShowing())
+                progressDialog = ProgressDialog.show(context, "", msg, true);
+        }
+    }
 
 }
