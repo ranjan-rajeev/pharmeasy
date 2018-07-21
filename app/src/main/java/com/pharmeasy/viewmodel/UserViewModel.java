@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.pharmeasy.api.ResponseListener;
 import com.pharmeasy.api.user.UserAPIService;
 import com.pharmeasy.model.UserEntity;
+import com.pharmeasy.ui.MainActivity;
 
 /**
  * Created by Rajeev Ranjan on 20-Jul-18.
@@ -42,7 +43,7 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
 
     public void getUser(int page) {
-        showDialog();
+        ((MainActivity)context).showProgressView();
         userAPIService.getUser(page, this);
         // userEntity = new UserEntity();
     }
@@ -52,7 +53,8 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
         if (userEntityLiveData == null) {
             userEntityLiveData = new MutableLiveData<UserEntity>();
-            userAPIService.getUser(1, this);
+            getUser(1);
+            //userAPIService.getUser(1, this);
         }
 
         return userEntityLiveData;
@@ -60,7 +62,8 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
 
     @Override
     public void onSuccess(MutableLiveData<UserEntity> response) {
-        cancelDialog();
+        ((MainActivity)context).hideProgressView();
+
         if (userEntity == null) {
             userEntity = response.getValue();
             userEntityLiveData.setValue(userEntity);
@@ -69,11 +72,13 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
             userEntity.getData().addAll(response.getValue().getData());
             userEntityLiveData.setValue(userEntity);
         }
+        int count = userEntity.getPage() * userEntity.getPer_page();
+        //Toast.makeText(context, count + "/" + userEntity.getTotal(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onFailure(String message) {
-        cancelDialog();
+        ((MainActivity)context).hideProgressView();
         Toast.makeText(context, "" + message, Toast.LENGTH_SHORT).show();
     }
 

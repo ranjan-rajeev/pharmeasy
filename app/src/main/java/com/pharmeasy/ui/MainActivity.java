@@ -1,5 +1,6 @@
 package com.pharmeasy.ui;
 
+import android.app.ProgressDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.pharmeasy.R;
@@ -31,6 +33,8 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    @BindView(R.id.progressBar)
+    ProgressBar progressBar;
     @BindView(R.id.tvHello)
     TextView tvHello;
     UserViewModel userViewModel;
@@ -139,6 +143,13 @@ public class MainActivity extends AppCompatActivity
     };
     //endregion
 
+    public void showProgressView() {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+     public void hideProgressView() {
+        progressBar.setVisibility(View.INVISIBLE);
+    }
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
