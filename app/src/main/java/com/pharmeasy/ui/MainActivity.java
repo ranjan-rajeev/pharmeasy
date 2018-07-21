@@ -5,20 +5,19 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
+import android.view.View;
 import android.widget.TextView;
 
 import com.pharmeasy.R;
@@ -26,11 +25,8 @@ import com.pharmeasy.adapter.UserAdapter;
 import com.pharmeasy.model.UserEntity;
 import com.pharmeasy.viewmodel.UserViewModel;
 
-import org.w3c.dom.Text;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -45,7 +41,7 @@ public class MainActivity extends AppCompatActivity
     boolean isHit = false;
 
     UserAdapter userAdapter;
-    private static int firstVisibleInListview;
+    SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +73,7 @@ public class MainActivity extends AppCompatActivity
         //endregion
 
         userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.init(this);
         userViewModel.getUserViewModel().observe(this, userViewModelObserver);
 
         rvUsers.setHasFixedSize(true);
@@ -85,23 +82,11 @@ public class MainActivity extends AppCompatActivity
         rvUsers.addOnScrollListener(onScrollListener);
     }
 
+    //region scroll listener
     RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
-            firstVisibleInListview = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-
-            int currentFirstVisible = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-
-            if (currentFirstVisible > firstVisibleInListview) {
-                Log.i("RecyclerView scrolled: ", "scroll up!");
-            } else {
-                Log.i("RecyclerView scrolled: ", "scroll down!");
-            }
-
-
-            firstVisibleInListview = currentFirstVisible;
-
 
             int lastCompletelyVisibleItemPosition = 0, prevPage = 0;
 
@@ -111,30 +96,22 @@ public class MainActivity extends AppCompatActivity
             lastCompletelyVisibleItemPosition++;
             prevPage = lastCompletelyVisibleItemPosition / userEntity.getPer_page();
 
-
-            if (prevPage < userEntity.getTotal_pages()) {
+            if (lastCompletelyVisibleItemPosition == userEntity.getData().size()
+                    && userEntity.getData().size() < userEntity.getTotal()) {
                 if (!isHit) {
                     isHit = true;
                     userViewModel.getUser((userEntity.getPage() + 1));
                 }
             }
-
-            /*if (lastCompletelyVisibleItemPosition == userEntity.getPage() - 1) {
-                if (!isHit) {
-                    isHit = true;
-                    userViewModel.getUser(page);
-                }
-            }*/
-
-
         }
     };
+    //endregion
 
-
+    //region user observer
     final Observer<UserEntity> userViewModelObserver = new Observer<UserEntity>() {
         @Override
         public void onChanged(@Nullable final UserEntity userEntity) {
-            // Update the UI, in this case, a TextView.
+
             isHit = false;
             MainActivity.this.userEntity = userEntity;
             tvHello.setText("test" + userEntity.getPage());
@@ -145,12 +122,22 @@ public class MainActivity extends AppCompatActivity
             userAdapter.notifyDataSetChanged();
         }
     };
+    //endregion
 
+    //region textchange listener
+    SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            return false;
+        }
 
-    @OnClick(R.id.tvHello)
-    void hello() {
-        userViewModel.getUser(++page);
-    }
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            userAdapter.getFilter().filter(newText);
+            return false;
+        }
+    };
+    //endregion
 
     @Override
     public void onBackPressed() {
@@ -166,6 +153,9 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setOnQueryTextListener(onQueryTextListener);
         return true;
     }
 
@@ -177,7 +167,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_search) {
             return true;
         }
 

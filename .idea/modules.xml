@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/pharmeasy.iml" filepath="$PROJECT_DIR$/pharmeasy.iml" />
+      <module fileurl="file://D:\Rajeev\AndroidProjects\pharmeasy\app\app.iml" filepath="D:\Rajeev\AndroidProjects\pharmeasy\app\app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/pharmeasy.iml" filepath="$PROJECT_DIR$/.idea/pharmeasy.iml" />
+      <module fileurl="file://D:\Rajeev\AndroidProjects\pharmeasy\pharmeasy.iml" filepath="D:\Rajeev\AndroidProjects\pharmeasy\pharmeasy.iml" />
     </modules>
   </component>
 </project>

@@ -1,6 +1,9 @@
 package com.pharmeasy.model;
 
-public class UserData {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class UserData implements Parcelable {
     /**
      * id : 1
      * first_name : George
@@ -44,4 +47,39 @@ public class UserData {
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.id);
+        dest.writeString(this.first_name);
+        dest.writeString(this.last_name);
+        dest.writeString(this.avatar);
+    }
+
+    public UserData() {
+    }
+
+    protected UserData(Parcel in) {
+        this.id = in.readInt();
+        this.first_name = in.readString();
+        this.last_name = in.readString();
+        this.avatar = in.readString();
+    }
+
+    public static final Parcelable.Creator<UserData> CREATOR = new Parcelable.Creator<UserData>() {
+        @Override
+        public UserData createFromParcel(Parcel source) {
+            return new UserData(source);
+        }
+
+        @Override
+        public UserData[] newArray(int size) {
+            return new UserData[size];
+        }
+    };
 }
