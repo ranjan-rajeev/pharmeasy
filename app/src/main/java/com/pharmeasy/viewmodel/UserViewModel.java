@@ -9,11 +9,7 @@ import android.widget.Toast;
 
 import com.pharmeasy.api.ResponseListener;
 import com.pharmeasy.api.user.UserAPIService;
-import com.pharmeasy.model.UserData;
 import com.pharmeasy.model.UserEntity;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Rajeev Ranjan on 20-Jul-18.
@@ -25,7 +21,7 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
     Context context;
     UserEntity userEntity;
     MutableLiveData<UserEntity> userEntityLiveData;
-    UserAPIService userAPIService;
+    static UserAPIService userAPIService;
 
     public UserEntity getUserEntity() {
         return userEntity;
@@ -40,10 +36,10 @@ public class UserViewModel extends ViewModel implements ResponseListener<Mutable
         this.userAPIService = new UserAPIService();
     }
 
-    public UserViewModel(Context context) {
+    public void init(Context context) {
         this.context = context;
-        this.userAPIService = new UserAPIService();
     }
+
 
     public void getUser(int page) {
         showDialog();
